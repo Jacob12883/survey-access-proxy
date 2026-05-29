@@ -241,8 +241,8 @@
     /* cad-simple-viewer resets */
     #dwg-container > * { width: 100% !important; height: 100% !important; }
   </style>
-  <script type="module" crossorigin src="/assets/index-B7RCsS29.js"></script>
-  <link rel="modulepreload" crossorigin href="/assets/cad-viewer-Dbt6ruSv.js">
+  <script type="module" crossorigin src="/assets/index-D9l2YE77.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/cad-viewer-VrXfPsUU.js">
   <link rel="modulepreload" crossorigin href="/assets/pdf-C7CGxAIG.js">
 </head>
 <body>
@@ -308,6 +308,9 @@
             <span class="tool-name" id="dwg-name"></span>
             <button class="tool-btn" onclick="dwgZoomExtents()" title="Fit to view">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>Fit
+            </button>
+            <button class="tool-btn active" id="btn-pan" onclick="togglePanMode()" title="Pan mode — drag to pan, scroll to zoom">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg>Pan
             </button>
             <button class="tool-btn" id="btn-measure" onclick="toggleMeasure()" title="Measure distance">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h20M12 2v20"/></svg>Measure
