@@ -248,7 +248,7 @@
     /* cad-simple-viewer resets */
     #dwg-container > * { width: 100% !important; height: 100% !important; }
   </style>
-  <script type="module" crossorigin src="/assets/index-CmjZwuM-.js"></script>
+  <script type="module" crossorigin src="/assets/index-Dt44U1wR.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/cad-viewer-8w9ywLXA.js">
   <link rel="modulepreload" crossorigin href="/assets/pdf-BdaRZebo.js">
 </head>
@@ -381,6 +381,9 @@
               <button class="tool-btn" onclick="pdfRotate()" title="Rotate 90°">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Rotate
               </button>
+              <button class="tool-btn" onclick="pdfZoomOut()" title="Zoom out" style="font-size:15px;font-weight:bold;padding:4px 9px;">&#8722;</button>
+              <button class="tool-btn" onclick="pdfZoomReset()" title="Reset zoom" style="font-size:11px;padding:4px 8px;">1:1</button>
+              <button class="tool-btn" onclick="pdfZoomIn()" title="Zoom in" style="font-size:15px;font-weight:bold;padding:4px 9px;">+</button>
               <a id="pdf-download" class="tool-btn" style="text-decoration:none" download>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download
               </a>
