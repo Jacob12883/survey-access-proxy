@@ -150,10 +150,19 @@
     /* DWG viewer container */
     #dwg-container {
       flex: 1; position: relative; overflow: hidden; background: #000;
+      min-height: 0; height: 0;
+    }
+    /* The Three.js canvas must fill the container */
+    #dwg-container canvas {
+      display: block !important;
+      width: 100% !important;
+      height: 100% !important;
+      touch-action: none;
     }
     #dwg-loading {
       position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
       background: var(--canvas-bg); z-index: 5; flex-direction: column; gap: 12px;
+      pointer-events: none;
     }
     #dwg-loading-text { font-size: 13px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
     .dwg-spinner {
@@ -241,9 +250,9 @@
     /* cad-simple-viewer resets */
     #dwg-container > * { width: 100% !important; height: 100% !important; }
   </style>
-  <script type="module" crossorigin src="/assets/index-D9l2YE77.js"></script>
+  <script type="module" crossorigin src="/assets/index-B4XLfEKK.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/cad-viewer-VrXfPsUU.js">
-  <link rel="modulepreload" crossorigin href="/assets/pdf-C7CGxAIG.js">
+  <link rel="modulepreload" crossorigin href="/assets/pdf-BdaRZebo.js">
 </head>
 <body>
 <div id="app">
@@ -308,6 +317,9 @@
             <span class="tool-name" id="dwg-name"></span>
             <button class="tool-btn" onclick="dwgZoomExtents()" title="Fit to view">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>Fit
+            </button>
+            <button class="tool-btn" onclick="showAllLayers()" title="Show all layers (including hidden DES layers)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>Layers
             </button>
             <button class="tool-btn active" id="btn-pan" onclick="togglePanMode()" title="Pan mode — drag to pan, scroll to zoom">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg>Pan
