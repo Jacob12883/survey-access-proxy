@@ -150,11 +150,14 @@
     /* DWG viewer container */
     #dwg-container {
       flex: 1; position: relative; overflow: hidden; background: #000;
-      min-height: 0; height: 0;
+      min-height: 0;
     }
-    /* The Three.js canvas must fill the container */
+    /* The Three.js canvas must fill the container — position:absolute so it
+       doesn't fight flex and always covers the full parent */
     #dwg-container canvas {
       display: block !important;
+      position: absolute !important;
+      inset: 0 !important;
       width: 100% !important;
       height: 100% !important;
       touch-action: none;
@@ -250,7 +253,7 @@
     /* cad-simple-viewer resets */
     #dwg-container > * { width: 100% !important; height: 100% !important; }
   </style>
-  <script type="module" crossorigin src="/assets/index-B4XLfEKK.js"></script>
+  <script type="module" crossorigin src="/assets/index--MShXaYm.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/cad-viewer-VrXfPsUU.js">
   <link rel="modulepreload" crossorigin href="/assets/pdf-BdaRZebo.js">
 </head>
@@ -312,13 +315,13 @@
           <div class="viewer-empty-title">Select a drawing</div>
           <div class="viewer-empty-sub">Choose a DWG from the list to view it</div>
         </div>
-        <div id="dwg-viewer-wrap" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+        <div id="dwg-viewer-wrap" style="display:none;flex:1;flex-direction:column;overflow:hidden;position:relative;">
           <div class="toolbar" id="dwg-toolbar">
             <span class="tool-name" id="dwg-name"></span>
             <button class="tool-btn" onclick="dwgZoomExtents()" title="Fit to view">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>Fit
             </button>
-            <button class="tool-btn" onclick="showAllLayers()" title="Show all layers (including hidden DES layers)">
+            <button class="tool-btn" id="btn-layers" onclick="toggleLayersPanel()" title="Toggle layer visibility">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>Layers
             </button>
             <button class="tool-btn active" id="btn-pan" onclick="togglePanMode()" title="Pan mode — drag to pan, scroll to zoom">
@@ -332,6 +335,8 @@
               <button onclick="clearMeasure()" style="color:var(--muted);padding:0"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
           </div>
+          <!-- Layer panel: sits over the left side of the viewer -->
+          <div id="layer-panel" style="display:none;position:absolute;top:0;left:0;bottom:0;width:260px;background:var(--surface);border-right:1px solid var(--border);z-index:10;flex-direction:column;box-shadow:4px 0 12px rgba(0,0,0,0.15)"></div>
           <div id="dwg-container">
             <div id="dwg-loading">
               <div class="dwg-spinner"></div>
@@ -360,7 +365,7 @@
           <div class="viewer-empty-title">Select a memo</div>
           <div class="viewer-empty-sub">Choose an approved instruction PDF from the list</div>
         </div>
-        <div id="memo-viewer-wrap" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+        <div id="memo-viewer-wrap" style="display:none;flex:1;flex-direction:column;overflow:hidden;position:relative;">
           <div class="pdf-toolbar">
             <span class="pdf-name" id="pdf-name"></span>
             <span class="pdf-date" id="pdf-date"></span>
@@ -368,6 +373,9 @@
               <button class="tool-btn" onclick="pdfPrevPage()" id="pdf-prev">&#8592; Prev</button>
               <span id="pdf-page-info" style="font-size:12px;color:var(--muted);white-space:nowrap">Page 1 / 1</span>
               <button class="tool-btn" onclick="pdfNextPage()" id="pdf-next">Next &#8594;</button>
+              <button class="tool-btn" onclick="pdfRotate()" title="Rotate 90°">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Rotate
+              </button>
               <a id="pdf-download" class="tool-btn" style="text-decoration:none" download>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download
               </a>
