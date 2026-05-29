@@ -149,17 +149,12 @@
 
     /* DWG viewer container */
     #dwg-container {
-      flex: 1; position: relative; overflow: hidden; background: #000;
-      min-height: 0;
+      flex: 1; min-height: 0; position: relative; overflow: hidden; background: #000;
     }
-    /* The Three.js canvas must fill the container — position:absolute so it
-       doesn't fight flex and always covers the full parent */
+    /* Do NOT override canvas width/height — the library manages these.
+       Only ensure touch events aren't cancelled by the browser. */
     #dwg-container canvas {
       display: block !important;
-      position: absolute !important;
-      inset: 0 !important;
-      width: 100% !important;
-      height: 100% !important;
       touch-action: none;
     }
     #dwg-loading {
@@ -253,7 +248,7 @@
     /* cad-simple-viewer resets */
     #dwg-container > * { width: 100% !important; height: 100% !important; }
   </style>
-  <script type="module" crossorigin src="/assets/index--MShXaYm.js"></script>
+  <script type="module" crossorigin src="/assets/index-DJypGgjV.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/cad-viewer-VrXfPsUU.js">
   <link rel="modulepreload" crossorigin href="/assets/pdf-BdaRZebo.js">
 </head>
