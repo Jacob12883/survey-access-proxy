@@ -173,7 +173,7 @@
     .pdf-toolbar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap; }
     .pdf-name { font-size: 13px; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
     .pdf-date { font-size: 11px; color: var(--muted); white-space: nowrap; }
-    #pdf-canvas-wrap { flex: 1; overflow-y: auto; background: var(--canvas-bg); display: flex; flex-direction: column; align-items: center; padding: 16px; gap: 12px; }
+    #pdf-canvas-wrap { flex: 1; overflow: auto; background: var(--canvas-bg); display: flex; flex-direction: column; align-items: center; padding: 16px; gap: 12px; }
 
     /* Sync page */
     #sync-page { overflow-y: auto; padding: 24px; width: 100%; }
@@ -248,7 +248,7 @@
     /* cad-simple-viewer resets */
     #dwg-container > * { width: 100% !important; height: 100% !important; }
   </style>
-  <script type="module" crossorigin src="/assets/index-Dt44U1wR.js"></script>
+  <script type="module" crossorigin src="/assets/index-D15ffeh9.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/cad-viewer-8w9ywLXA.js">
   <link rel="modulepreload" crossorigin href="/assets/pdf-BdaRZebo.js">
 </head>
@@ -389,8 +389,8 @@
               </a>
             </div>
           </div>
-          <div id="pdf-canvas-wrap" style="flex:1;overflow-y:auto;background:var(--canvas-bg);display:flex;flex-direction:column;align-items:center;padding:16px;gap:12px">
-            <canvas id="pdf-canvas" style="max-width:100%;box-shadow:var(--shadow-lg);background:#fff"></canvas>
+          <div id="pdf-canvas-wrap" style="flex:1;overflow:auto;background:var(--canvas-bg);display:flex;flex-direction:column;align-items:center;padding:16px;gap:12px">
+            <canvas id="pdf-canvas" style="box-shadow:var(--shadow-lg);background:#fff;display:block"></canvas>
           </div>
         </div>
       </div>
