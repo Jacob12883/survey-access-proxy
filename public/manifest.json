@@ -1,0 +1,14 @@
+{
+  "name": "Survey Access",
+  "short_name": "Survey Access",
+  "description": "Mining DXF drawing viewer and memo library — works offline",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0e1822",
+  "theme_color": "#1e3a5f",
+  "orientation": "any",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

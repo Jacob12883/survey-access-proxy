@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Survey Access</title>
+  <meta name="description" content="Mining DWG drawing viewer and memo library — works offline" />
+  <meta name="theme-color" content="#1e3a5f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Survey Access" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: none; text-size-adjust: none; -webkit-font-smoothing: antialiased; }
+    body { min-height: 100dvh; font-family: 'Inter', system-ui, sans-serif; font-size: 15px; overflow: hidden; }
+
+    :root, [data-theme="light"] {
+      --bg: #f0f4f8; --surface: #ffffff; --surface2: #f8fafc;
+      --border: #d1dce8; --text: #1a2b3c; --muted: #607080; --faint: #9ab0c0;
+      --primary: #1e3a5f; --primary-fg: #ffffff; --primary-h: #16304f;
+      --accent: #f59e0b; --accent-fg: #1a1200;
+      --danger: #dc2626; --success: #16a34a;
+      --canvas-bg: #e2eaf4;
+      --shadow: 0 2px 8px rgba(20,40,70,0.10);
+      --shadow-lg: 0 8px 24px rgba(20,40,70,0.14);
+    }
+    [data-theme="dark"] {
+      --bg: #0e1822; --surface: #152030; --surface2: #1c2c3e;
+      --border: #2a3f56; --text: #c8d8e8; --muted: #6888a0; --faint: #3a5570;
+      --primary: #3b82c4; --primary-fg: #ffffff; --primary-h: #2563a8;
+      --accent: #f59e0b; --accent-fg: #1a1200;
+      --danger: #f87171; --success: #4ade80;
+      --canvas-bg: #1a2a3c;
+      --shadow: 0 2px 8px rgba(0,0,0,0.3);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    body { background: var(--bg); color: var(--text); }
+    button { cursor: pointer; border: none; background: none; font: inherit; color: inherit; }
+    input, select { font: inherit; color: inherit; }
+    a { color: var(--primary); }
+
+    #app { display: flex; flex-direction: column; height: 100dvh; }
+
+    #header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px; background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0; z-index: 40;
+      box-shadow: var(--shadow);
+    }
+    .logo { display: flex; align-items: center; gap: 8px; flex-shrink: 0; text-decoration: none; color: inherit; }
+    .logo-text { font-weight: 700; font-size: 15px; letter-spacing: 0.01em; color: var(--text); }
+    #nav { display: flex; gap: 2px; margin-left: 12px; }
+    .nav-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 12px; border-radius: 8px;
+      font-size: 13px; font-weight: 500; color: var(--muted);
+      background: transparent; transition: all 0.15s; white-space: nowrap;
+    }
+    .nav-btn:hover { background: var(--bg); color: var(--text); }
+    .nav-btn.active { background: var(--primary); color: var(--primary-fg); }
+    #header-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .icon-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px; border-radius: 8px;
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--muted); transition: all 0.15s; flex-shrink: 0;
+    }
+    .icon-btn:hover { background: var(--bg); color: var(--text); }
+    #online-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+    #online-dot.offline { background: var(--danger); }
+
+    #main { flex: 1; overflow: hidden; display: flex; }
+    .page { display: none; width: 100%; height: 100%; }
+    .page.active { display: flex; }
+
+    .sidebar {
+      width: 272px; flex-shrink: 0; display: flex; flex-direction: column;
+      border-right: 1px solid var(--border); background: var(--surface);
+      height: 100%; overflow: hidden;
+    }
+    .sidebar-search { padding: 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .search-wrap { position: relative; }
+    .search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--muted); }
+    .search-input {
+      width: 100%; padding: 8px 10px 8px 34px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; font-size: 13px; color: var(--text); outline: none;
+      transition: border-color 0.15s;
+    }
+    .search-input:focus { border-color: var(--primary); }
+    .sidebar-count { padding: 6px 14px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .file-list { flex: 1; overflow-y: auto; }
+    .file-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-bottom: 1px solid var(--border);
+      cursor: pointer; transition: background 0.12s; user-select: none;
+    }
+    .file-item:hover { background: var(--bg); }
+    .file-item.active { background: rgba(30,58,95,0.08); border-left: 3px solid var(--primary); }
+    [data-theme="dark"] .file-item.active { background: rgba(59,130,196,0.12); }
+    .file-icon { flex-shrink: 0; color: var(--muted); }
+    .file-item.active .file-icon { color: var(--primary); }
+    .file-name { font-size: 13px; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-date { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .file-item-meta { min-width: 0; flex: 1; }
+    .empty-state { padding: 40px 16px; text-align: center; color: var(--muted); }
+    .empty-state svg { margin: 0 auto 12px; opacity: 0.4; }
+    .empty-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .empty-sub { font-size: 12px; line-height: 1.5; }
+
+    .viewer-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .viewer-empty {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 12px; color: var(--muted);
+    }
+    .viewer-empty-title { font-size: 18px; font-weight: 600; color: var(--text); }
+    .viewer-empty-sub { font-size: 13px; }
+
+    .toolbar {
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      padding: 8px 12px; background: var(--surface);
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .tool-name { font-size: 13px; font-weight: 600; color: var(--text); margin-right: 4px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tool-btn {
+      display: flex; align-items: center; gap: 5px;
+      padding: 6px 11px; border-radius: 7px;
+      font-size: 12px; font-weight: 500;
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); transition: all 0.13s; white-space: nowrap; flex-shrink: 0; text-decoration: none;
+    }
+    .tool-btn:hover { background: var(--bg); }
+    .tool-btn.active { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
+    .tool-btn.primary { background: var(--primary); color: var(--primary-fg); border-color: transparent; }
+    .tool-btn.primary:hover { background: var(--primary-h); }
+    .tool-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .measure-result {
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 11px; border-radius: 7px;
+      background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.35);
+      font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600;
+      color: var(--accent); white-space: nowrap;
+    }
+
+    /* DWG viewer container */
+    #dwg-container {
+      flex: 1; position: relative; overflow: hidden; background: #000;
+    }
+    #dwg-loading {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      background: var(--canvas-bg); z-index: 5; flex-direction: column; gap: 12px;
+    }
+    #dwg-loading-text { font-size: 13px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+    .dwg-spinner {
+      width: 32px; height: 32px; border: 3px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    /* PDF viewer */
+    .pdf-toolbar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap; }
+    .pdf-name { font-size: 13px; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+    .pdf-date { font-size: 11px; color: var(--muted); white-space: nowrap; }
+    #pdf-canvas-wrap { flex: 1; overflow-y: auto; background: var(--canvas-bg); display: flex; flex-direction: column; align-items: center; padding: 16px; gap: 12px; }
+
+    /* Sync page */
+    #sync-page { overflow-y: auto; padding: 24px; width: 100%; }
+    .sync-inner { max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+    .sync-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .sync-card-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+    .sync-card-title { font-size: 14px; font-weight: 700; color: var(--text); }
+    .sync-card-sub { font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+    .sync-card-badge { margin-left: auto; flex-shrink: 0; }
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+    .badge-ok { background: #dcfce7; color: #15803d; }
+    .badge-err { background: #fee2e2; color: #b91c1c; }
+    [data-theme="dark"] .badge-ok { background: #14532d; color: #4ade80; }
+    [data-theme="dark"] .badge-err { background: #450a0a; color: #fca5a5; }
+    .field-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 5px; }
+    .field-input {
+      width: 100%; padding: 8px 12px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; font-size: 13px; color: var(--text); outline: none;
+      transition: border-color 0.15s;
+    }
+    .field-input:focus { border-color: var(--primary); }
+    .field-input.mono { font-family: 'JetBrains Mono', monospace; }
+    .field-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+    .sync-log {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 12px; max-height: 180px; overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.8;
+    }
+    .log-ok { color: var(--success); }
+    .log-err { color: var(--danger); }
+    .log-muted { color: var(--muted); }
+    .status-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px; border-radius: 8px;
+      font-size: 13px; font-weight: 500;
+    }
+    .status-bar.online { background: rgba(22,163,74,0.1); color: var(--success); border: 1px solid rgba(22,163,74,0.2); }
+    .status-bar.offline { background: rgba(220,38,38,0.08); color: var(--danger); border: 1px solid rgba(220,38,38,0.15); }
+    .info-list { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+    .info-list li { font-size: 12px; color: var(--muted); line-height: 1.5; padding-left: 14px; position: relative; }
+    .info-list li::before { content: '•'; position: absolute; left: 2px; color: var(--faint); }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinning { animation: spin 0.9s linear infinite; }
+
+    #mobile-nav {
+      display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 40;
+      background: var(--surface); border-top: 1px solid var(--border);
+      padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+    }
+    .mobile-nav-inner { display: flex; justify-content: space-around; }
+    .mobile-nav-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      padding: 6px 16px; border-radius: 8px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+      color: var(--muted); transition: color 0.13s;
+    }
+    .mobile-nav-btn.active { color: var(--accent); }
+
+    @media (max-width: 700px) {
+      #nav { display: none; }
+      #mobile-nav { display: block; }
+      #main { padding-bottom: 60px; }
+      .sidebar { display: none; }
+      .sidebar.mobile-open { display: flex; position: fixed; top: 56px; bottom: 60px; left: 0; z-index: 35; width: 280px; box-shadow: var(--shadow-lg); }
+      .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 34; }
+      .sidebar-overlay.show { display: block; }
+      #sync-page { padding: 16px; }
+    }
+
+    /* cad-simple-viewer resets */
+    #dwg-container > * { width: 100% !important; height: 100% !important; }
+  </style>
+  <script type="module" crossorigin src="/assets/index-B7RCsS29.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/cad-viewer-Dbt6ruSv.js">
+  <link rel="modulepreload" crossorigin href="/assets/pdf-C7CGxAIG.js">
+</head>
+<body>
+<div id="app">
+  <header id="header">
+    <button id="mobile-menu-btn" class="icon-btn" style="display:none" aria-label="Menu">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <a class="logo" href="#">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-label="Survey Access">
+        <rect width="28" height="28" rx="7" fill="#1e3a5f"/>
+        <path d="M7 21L14 9L21 21" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <line x1="10.5" y1="17" x2="17.5" y2="17" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round"/>
+        <circle cx="14" cy="9" r="1.6" fill="#f59e0b"/>
+      </svg>
+      <span class="logo-text">Survey Access</span>
+    </a>
+    <nav id="nav">
+      <button class="nav-btn active" data-page="drawings" onclick="showPage('drawings')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Drawings
+      </button>
+      <button class="nav-btn" data-page="memos" onclick="showPage('memos')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>Memos
+      </button>
+      <button class="nav-btn" data-page="sync" onclick="showPage('sync')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>Sync &amp; Settings
+      </button>
+      <button class="nav-btn" data-page="folders" onclick="showPage('folders')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Folders
+      </button>
+    </nav>
+    <div id="header-right">
+      <div id="online-dot" title="Online"></div>
+      <button class="icon-btn" onclick="toggleTheme()" title="Toggle dark mode">
+        <svg id="theme-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+  <div id="main">
+    <!-- Drawings -->
+    <div class="page active" id="page-drawings">
+      <div class="sidebar" id="drawings-sidebar">
+        <div class="sidebar-search">
+          <div class="search-wrap">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search-input" id="drawings-search" placeholder="Search drawings..." oninput="filterDrawings()" />
+          </div>
+        </div>
+        <div class="sidebar-count" id="drawings-count">0 drawings</div>
+        <div class="file-list" id="drawings-list"></div>
+      </div>
+      <div class="viewer-panel" id="drawings-viewer">
+        <div class="viewer-empty" id="drawings-empty">
+          <svg width="56" height="56" viewBox="0 0 56 56" fill="none"><rect x="8" y="8" width="40" height="40" rx="4" stroke="currentColor" stroke-width="1.5"/><line x1="16" y1="20" x2="40" y2="20" stroke="#f59e0b" stroke-width="1.5"/><line x1="16" y1="28" x2="36" y2="28" stroke="currentColor" stroke-width="1.5"/><line x1="16" y1="36" x2="30" y2="36" stroke="currentColor" stroke-width="1.5"/></svg>
+          <div class="viewer-empty-title">Select a drawing</div>
+          <div class="viewer-empty-sub">Choose a DWG from the list to view it</div>
+        </div>
+        <div id="dwg-viewer-wrap" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+          <div class="toolbar" id="dwg-toolbar">
+            <span class="tool-name" id="dwg-name"></span>
+            <button class="tool-btn" onclick="dwgZoomExtents()" title="Fit to view">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>Fit
+            </button>
+            <button class="tool-btn" id="btn-measure" onclick="toggleMeasure()" title="Measure distance">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h20M12 2v20"/></svg>Measure
+            </button>
+            <div class="measure-result" id="measure-result" style="display:none">
+              <span id="measure-text"></span>
+              <button onclick="clearMeasure()" style="color:var(--muted);padding:0"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            </div>
+          </div>
+          <div id="dwg-container">
+            <div id="dwg-loading">
+              <div class="dwg-spinner"></div>
+              <div id="dwg-loading-text">Loading DWG...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Memos -->
+    <div class="page" id="page-memos">
+      <div class="sidebar" id="memos-sidebar">
+        <div class="sidebar-search">
+          <div class="search-wrap">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search-input" id="memos-search" placeholder="Search memos..." oninput="filterMemos()" />
+          </div>
+        </div>
+        <div class="sidebar-count" id="memos-count">0 memos</div>
+        <div class="file-list" id="memos-list"></div>
+      </div>
+      <div class="viewer-panel" id="memos-viewer">
+        <div class="viewer-empty" id="memos-empty">
+          <svg width="56" height="56" viewBox="0 0 56 56" fill="none"><path d="M14 6h20l8 8v36H14z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M34 6v8h8" stroke="#f59e0b" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          <div class="viewer-empty-title">Select a memo</div>
+          <div class="viewer-empty-sub">Choose an approved instruction PDF from the list</div>
+        </div>
+        <div id="memo-viewer-wrap" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+          <div class="pdf-toolbar">
+            <span class="pdf-name" id="pdf-name"></span>
+            <span class="pdf-date" id="pdf-date"></span>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+              <button class="tool-btn" onclick="pdfPrevPage()" id="pdf-prev">&#8592; Prev</button>
+              <span id="pdf-page-info" style="font-size:12px;color:var(--muted);white-space:nowrap">Page 1 / 1</span>
+              <button class="tool-btn" onclick="pdfNextPage()" id="pdf-next">Next &#8594;</button>
+              <a id="pdf-download" class="tool-btn" style="text-decoration:none" download>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download
+              </a>
+            </div>
+          </div>
+          <div id="pdf-canvas-wrap" style="flex:1;overflow-y:auto;background:var(--canvas-bg);display:flex;flex-direction:column;align-items:center;padding:16px;gap:12px">
+            <canvas id="pdf-canvas" style="max-width:100%;box-shadow:var(--shadow-lg);background:#fff"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Folders -->
+    <div class="page" id="page-folders" style="overflow:hidden;">
+      <div style="overflow-y:auto;padding:24px;width:100%">
+        <div class="sync-inner">
+          <h1 style="font-size:18px;font-weight:700;color:var(--text)">Saved Folders</h1>
+          <div class="sync-card">
+            <div class="sync-card-header">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              <div>
+                <div class="sync-card-title">Add a Folder</div>
+                <div class="sync-card-sub">Give the folder a name and paste the Google Drive folder ID from the URL.</div>
+              </div>
+            </div>
+            <div class="field-group"><div class="field-label">Folder Name</div><input class="field-input" id="new-folder-name" placeholder="e.g. EHM Level 3 Drawings" /></div>
+            <div class="field-group"><div class="field-label">Google Drive Folder ID</div><input class="field-input mono" id="new-folder-id" placeholder="Paste folder ID from Drive URL" /></div>
+            <div class="field-group">
+              <div class="field-label">Type</div>
+              <select class="field-input" id="new-folder-type">
+                <option value="drawings">DWG Drawings</option>
+                <option value="memos">PDF Memos</option>
+              </select>
+            </div>
+            <button class="tool-btn primary" onclick="addSavedFolder()">Add Folder</button>
+          </div>
+          <div class="sync-card">
+            <div class="sync-card-title" style="margin-bottom:12px">Saved Folders</div>
+            <div id="saved-folders-list"><div style="color:var(--muted);font-size:13px">No folders saved yet.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sync -->
+    <div class="page" id="page-sync" style="overflow:hidden;">
+      <div id="sync-page">
+        <div class="sync-inner">
+          <h1 style="font-size:18px;font-weight:700;color:var(--text)">Sync &amp; Settings</h1>
+          <div class="status-bar online" id="status-bar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M10.54 16.1a6 6 0 0 1 2.92 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>Online — sync available
+          </div>
+          <div class="sync-card">
+            <div class="sync-card-header">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              <div><div class="sync-card-title">Google Drive Connection</div><div class="sync-card-sub">One-time login — tokens never expire.</div></div>
+              <div class="sync-card-badge"><span class="badge badge-err" id="drive-badge">Not connected</span></div>
+            </div>
+            <div class="btn-row">
+              <button class="tool-btn primary" onclick="connectDrive()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Connect Google Drive
+              </button>
+              <button class="tool-btn" id="refresh-btn" onclick="refreshDrive()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Refresh
+              </button>
+            </div>
+            <div style="font-size:12px;color:var(--muted);margin-top:8px" id="drive-user-info"></div>
+          </div>
+          <div class="sync-card">
+            <div class="sync-card-header">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              <div><div class="sync-card-title">Active Folders</div><div class="sync-card-sub">Select from your saved folders.</div></div>
+            </div>
+            <div class="field-group"><div class="field-label">DWG Drawings Folder</div><select class="field-input" id="drawings-folder-id" onchange="saveFoldersFromDropdown()"></select></div>
+            <div class="field-group"><div class="field-label">PDF Memos Folder</div><select class="field-input" id="memos-folder-id" onchange="saveFoldersFromDropdown()"></select></div>
+          </div>
+          <div class="sync-card">
+            <div class="sync-card-header">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+              <div><div class="sync-card-title">Sync Now</div><div class="sync-card-sub" id="sync-stats">Loading...</div></div>
+              <div class="sync-card-badge">
+                <button class="tool-btn primary" id="sync-btn" onclick="runSync()">
+                  <svg id="sync-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>Sync
+                </button>
+              </div>
+            </div>
+            <div class="sync-log" id="sync-log" style="display:none"></div>
+          </div>
+          <div class="sync-card" style="background:var(--surface2)">
+            <div style="display:flex;gap:10px">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <div>
+                <div class="sync-card-title" style="margin-bottom:8px">How it works</div>
+                <ul class="info-list">
+                  <li>Connect Google Drive once — stays connected permanently</li>
+                  <li>All synced DWGs and PDFs are stored locally in your browser</li>
+                  <li>Once synced, view all files with no internet connection</li>
+                  <li>Run sync each morning after Deswik exports DWGs to Google Drive</li>
+                  <li>Only new or changed files are re-downloaded</li>
+                  <li>On iPad/iPhone: tap Share then Add to Home Screen for a full-screen app</li>
+                  <li>On PC: click the install icon in the browser address bar</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav id="mobile-nav">
+    <div class="mobile-nav-inner">
+      <button class="mobile-nav-btn active" data-page="drawings" onclick="showPage('drawings')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Drawings
+      </button>
+      <button class="mobile-nav-btn" data-page="memos" onclick="showPage('memos')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>Memos
+      </button>
+      <button class="mobile-nav-btn" data-page="sync" onclick="showPage('sync')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>Sync
+      </button>
+      <button class="mobile-nav-btn" data-page="folders" onclick="showPage('folders')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Folders
+      </button>
+    </div>
+  </nav>
+</div>
+</body>
+</html>

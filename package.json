@@ -1,0 +1,16 @@
+{
+  "name": "survey-access-proxy",
+  "version": "1.0.0",
+  "description": "Box API proxy for Survey Access PWA",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "node-fetch": "^2.7.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
