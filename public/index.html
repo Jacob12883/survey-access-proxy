@@ -149,7 +149,7 @@
 
     /* DWG viewer container */
     #dwg-container {
-      flex: 1; min-height: 0; position: relative; overflow: hidden; background: #000;
+      flex: 1; min-height: 0; height: 0; width: 100%; position: relative; overflow: hidden; background: #000;
     }
     /* Do NOT override canvas width/height — the library manages these.
        Only ensure touch events aren't cancelled by the browser. */
@@ -246,9 +246,10 @@
     }
 
     /* cad-simple-viewer resets */
-    #dwg-container > * { width: 100% !important; height: 100% !important; }
+    /* The library (cad-simple-viewer) manages all canvas sizing via renderer.setSize() — do NOT override */
+    .ml-ccl-overlay { pointer-events: none !important; } /* prevent library loading overlay blocking mouse events */
   </style>
-  <script type="module" crossorigin src="/assets/index-D15ffeh9.js"></script>
+  <script type="module" crossorigin src="/assets/index-jaaJJ5QD.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/cad-viewer-8w9ywLXA.js">
   <link rel="modulepreload" crossorigin href="/assets/pdf-BdaRZebo.js">
 </head>
